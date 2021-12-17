@@ -1,0 +1,266 @@
+#%%%%%%%%%    CellTrails Workflow    %%%%%%%%%%
+
+
+####  Prerequisites  ####
+library(CellTrails); library(SingleCellExperiment); library(singleCellTK); library(Seurat); library(tidyverse)
+
+
+####  Path-related parameters  ####
+Path <- "C:/Users/yosueda/Documents/RStudio/"
+Proj <- "SOX2 project/Combine"
+dim = 9; res = 0.5
+
+
+####  Converting pre-analyzed merged Seurat to SingleCellDataset  ####
+# Load Seurat object
+day2030405060 <- readRDS(paste0(Path, Proj, "/Output/day2030405060_", toString(dim), "_" , toString(res), ".rds"))
+DimPlot(day2030405060, pt.size = 1.2, label = T, label.size = 5)
+
+# Pick out 1200 cells from each cluster except for neuron and glia
+data <- NULL
+for (i in c(0,1,3,4,5,7,10)) {
+  j <- subset(day2030405060, ident = i) %>% subset(cells = sample(Cells(.), 1200))
+  if (class(data) == "Seurat") {
+    data <- merge(data, j)
+  } else {
+    data <- j
+  }
+}; rm(i, j); gc(); gc(); 
+
+# Conversion to SingleCellExperiment
+data <- as.SingleCellExperiment(data, assay = "RNA"); gc(); gc()
+
+# Conversion of assay data from sparse matrix to regular matrix
+counts(data) <- NULL                                                # deleting raw count
+data@assays@data$logcounts <- as.matrix(data@assays@data$logcounts) # sparse to regular 
+rowData(data)$feature_symbol <- rownames(data)                      # assigning gene names
+gc();gc()
+
+
+####  Selecting most variable features  ####
+trajFeatureNames(data) <- filterTrajFeaturesByDL(data, threshold=100, show_plot = T); showTrajInfo(data); gc(); gc()
+trajFeatureNames(data) <- filterTrajFeaturesByCOV(data, threshold=0.5, show_plot = T); showTrajInfo(data); gc(); gc()
+trajFeatureNames(data) <- tfeat <- filterTrajFeaturesByFF(data, threshold=1.7, show_plot = T); showTrajInfo(data); gc(); gc()
+
+
+####  Preparing data subset containing only the most variable features ####
+data.sub <- data[tfeat, ]; rownames(data.sub)
+saveRDS(data, paste0(Path, Proj, "/CellTrails/20211215/Output/Cell8400_postfiltering.rds"))
+saveRDS(data.sub, paste0(Path, Proj, "/CellTrails/20211215/Output/Cell8400_sub_postfiltering.rds"))
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+####  Code run on Quartz below  ####
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# # Dimensional reduction (spectral embedding)
+# library(CellTrails); message("library loaded")
+# 
+# data.sub <-readRDS("/N/slate/yosueda/SOX2_CellTrails/20211215/Output/Cell8400_sub_postfiltering.rds")
+# message("sub dataset loaded")
+# 
+# se <- embedSamples(data.sub)
+# message("embedSamples finished")
+# 
+# # Identify relevant components
+# d <- findSpectrum(se$eigenvalues, frac = 100)
+# message("findSpectrum finished")
+# 
+# data <- readRDS("/N/slate/yosueda/SOX2_CellTrails/20211215/Output/Cell8400_postfiltering.rds")
+# message("full dataset loaded")
+# 
+# latentSpace(data) <- se$components[ , d]
+# 
+# saveRDS(data, "/N/slate/yosueda/SOX2_CellTrails/20211215/Output/Cell8400_sub_postembedSamples.rds")
+# message("data saved")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%  Code run on Quartz above  %%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+data <- readRDS(paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400_postembedSamples.rds"))
+
+
+####  Spectral clustering  ####
+states(data) <- findStates(data, min_size=0.03, min_feat=20, max_pval=1e-5, min_fc=2) 
+
+plotManifold(data, color_by = "phenoName", name = "state")
+plotManifold(data, color_by = "phenoName", name = "seurat_clusters")
+
+# Storing tSNE result
+manifold2D(data) <- gp <- plotManifold(data, color_by="phenoName", name="Day", recalculate = T); gp
+
+
+####  State trajectory graph computation  ####
+
+data <- connectStates(data, l=10)
+
+# Showing trajectory information
+gp <- plotStateTrajectory(data, color_by="phenoName", name="state", 
+                          component=1, point_size=1.5, label_offset=4, 
+                          recalculate=TRUE); gp; gc(); gc()
+gp <- plotStateTrajectory(data, color_by="phenoName", name="seurat_clusters", 
+                          component=1, point_size=1.5, label_offset=4, 
+                          recalculate=TRUE); gp; gc(); gc()
+
+# Storing layout
+stateTrajLayout(data) <- gp
+
+# Checking expression pattern
+plotStateTrajectory(data, color_by = "featureName", name = "UBE2C",  component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "PAX2",   component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "FBXO2",  component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "OC90",   component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "SPARCL1",component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "PCP4",   component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "POU4F3", component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "ELAVL4", component = 1, point_size = 10)
+plotStateTrajectory(data, color_by = "featureName", name = "S100B",  component = 1, point_size = 10)
+
+plotStateTrajectory(data, color_by = "phenoName",   name = "Day",    component = 1, point_size = 2)
+
+# Selecting trajectory
+data <- selectTrajectory(data, component=1)
+
+# Aligning samples onto trajectory
+data <- fitTrajectory(data)
+trajResiduals(data)[1:5]
+
+plotTrajectoryFit(data)
+showTrajInfo(data)
+phenoNames(data)
+
+####  CellTrails mapping  ####
+# Exporting to yED
+# Color and label nodes by state
+write.ygraphml(data,
+               file = paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400.graphml"),
+               color_by = "phenoName",
+               name = "state",
+               node_label = "state")
+
+write.ygraphml(data,
+               file = paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400.graphml"),
+               color_by = "phenoName",
+               name = "Day",
+               node_label = "seurat_clusters")
+
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#%%%  Edit trajectory here by yEd  %%%%
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+tl <- read.ygraphml(paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400_2.graphml"))
+
+# Plot layout
+plot(tl[,1:2], axes=FALSE, xlab="", ylab="", pch=20, cex=.25)
+
+# Adjust layout and store to object
+trajLayout(data, adjust=TRUE) <- tl
+
+# Plot adjusted layout
+plot(trajLayout(data), axes=FALSE, xlab="", ylab="", pch=20, cex=.25)
+
+plotMap(data, color_by="phenoName", name="ident")
+plotMap(data, color_by="phenoName", name="Day")
+
+plotMap(data, color_by="featureName", name="UBE2C", type="surface.fit")
+
+plotMap(data, color_by="featureName", name="PAX2", type="surface.fit")
+plotMap(data, color_by="featureName", name="FBXO2", type="surface.fit")
+plotMap(data, color_by="featureName", name="HES1", type="surface.fit")
+plotMap(data, color_by="featureName", name="BRICD5", type="surface.fit")
+plotMap(data, color_by="featureName", name="SPARCL1", type="surface.fit")
+plotMap(data, color_by="featureName", name="TMOD1", type="surface.fit")
+plotMap(data, color_by="featureName", name="OC90", type="surface.fit")
+plotMap(data, color_by="featureName", name="AGR2", type="surface.fit")
+
+plotMap(data, color_by="featureName", name="ATOH1", type="surface.fit")
+plotMap(data, color_by="featureName", name="PCP4", type="surface.fit")
+plotMap(data, color_by="featureName", name="POU4F3", type="surface.fit")
+
+plotMap(data, color_by="featureName", name="KRT18", type="surface.fit")
+plotMap(data, color_by="featureName", name="MINDY4B", type="surface.fit")
+
+plotMap(data, color_by="featureName", name="MYO3A", type="surface.fit")
+plotMap(data, color_by="featureName", name="MYO7A", type="surface.fit")
+plotMap(data, color_by="featureName", name="MYO1C", type="surface.fit")
+
+plotMap(data, color_by="featureName", name="MYO6", type="surface.fit")
+plotMap(data, color_by="featureName", name="MYO15A", type="surface.fit")
+plotMap(data, color_by="featureName", name="MORN4", type="surface.fit")
+
+
+# Zhu 2019 eLIFE
+plotMap(data, color_by="featureName", name="OCM", type="surface.fit")
+plotMap(data, color_by="featureName", name="CRABP1", type="surface.fit") # X in E15
+plotMap(data, color_by="featureName", name="GPX2", type="surface.fit")
+plotMap(data, color_by="featureName", name="AK1", type="surface.fit") # ? in E15
+plotMap(data, color_by="featureName", name="GSTO1", type="surface.fit") # X in E15
+
+plotMap(data, color_by="featureName", name="TMSB4X", type="surface.fit")
+plotMap(data, color_by="featureName", name="AGR3", type="surface.fit") # SC2
+
+plotMap(data, color_by="featureName", name="CALB2", type="surface.fit") # X in E15
+
+plotMap(data, color_by="featureName", name="TMSB4X", type="surface.fit") # PAX2 popu
+plotMap(data, color_by="featureName", name="ACTG1", type="surface.fit") # kept by TMSB4X
+
+plotMap(data, color_by="featureName", name="TMSB15B", type="surface.fit") # little
+plotMap(data, color_by="featureName", name="TMSB10", type="surface.fit") # not HC
+plotMap(data, color_by="featureName", name="SH3BGRL", type="surface.fit") # SC1
+plotMap(data, color_by="featureName", name="MARCKS", type="surface.fit") # amplyfying
+
+plotMap(data, color_by="featureName", name="GPX2", type="surface.fit") # HC 
+plotMap(data, color_by="featureName", name="AK1", type="surface.fit") # little
+
+plotMap(data, color_by="featureName", name="OTOF", type="surface.fit") # SC
+
+# Smoothed
+plotMap(data, color_by = "featureName", name = "PAX2",  type = "surface.fit", samples_only = T)
+plotMap(data, color_by = "featureName", name = "JAG1",  type = "surface.fit", samples_only = T)
+plotMap(data, color_by = "featureName", name = "EPCAM", type = "surface.fit", samples_only = T)
+plotMap(data, color_by = "featureName", name = "FBXO2", type = "surface.fit", samples_only = T)
+plotMap(data, color_by = "featureName", name = "JAG2",  type = "surface.fit", samples_only = T)
+
+
+####  Expression Dynamics  ####
+plotMap(data, color_by="phenoName", name="landmark")
+
+# Defining trails
+data <- addTrail(data, from="B1", to="H18", name="HC")
+data <- addTrail(data, from="B1", to="H5", name="SC.1")
+data <- addTrail(data, from="B1", to="B6", name="SC.2")
+
+showTrajInfo(data)
+
+plotTrail(data, name="HC")
+plotTrail(data, name="SC.1")
+plotTrail(data, name="SC.2")
+
+# Getting trail names
+trailNames(data)
+
+# Getting trail pseudotime
+trails(data)[1:5, ]
+
+# Getting trail names
+plotManifold(data, color_by="phenoName", name="HC")
+plotManifold(data, color_by="phenoName", name="SC.1")
+plotManifold(data, color_by="phenoName", name="SC.2")
+
+####  Extract pseudotime of HC  ####
+ptime <- trails(data)[, "HC"]
+
+plotDynamic(data, feature_name=c("PAX2", "FBXO2", "LMO7", "ATOH1", "POU4F3", "MYO15A", "MYO7A"), trail_name="HC")
+plotDynamic(data, feature_name=c("HES6", "MYO6", "PCP4"), trail_name="HC")
+
+plotDynamic(data, feature_name=c("WFDC2"), trail_name="SC.1")
+plotDynamic(data, feature_name=c("PAX2", "FBXO2", "BRICD5", "OTOL1", "SPARCL1", "USH1C", "KRT18"), trail_name="SC.1")
+
+plotDynamic(data, feature_name=c("WFDC2"), trail_name="SC.2")
+plotDynamic(data, feature_name=c("PAX2", "FBXO2", "BRICD5", "OTOL1", "SPARCL1", "USH1C", "KRT18"), trail_name="SC.2")
+
+# saveRDS(data, paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400_withTrajectory.rds"))
+# data <- readRDS(paste0(Path, Proj, "/CellTrails/20211216/Output/Cell8400_withTrajectory.rds"))
+
