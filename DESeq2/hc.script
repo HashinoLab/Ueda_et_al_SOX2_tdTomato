@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH -J 0208hc
+#SBATCH -J hc
 #SBATCH -p general
-#SBATCH -o 20220208hc_%j.log
-#SBATCH -e 20220208hc_%j.err
+#SBATCH -o hc_%j.log
+#SBATCH -e hc_%j.err
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=rainedrat@gmail.com
 #SBATCH --nodes=1
