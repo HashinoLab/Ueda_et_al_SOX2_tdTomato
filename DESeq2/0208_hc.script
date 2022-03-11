@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#SBATCH -J 0208hc
+#SBATCH -p general
+#SBATCH -o 20220208hc_%j.log
+#SBATCH -e 20220208hc_%j.err
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=rainedrat@gmail.com
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=8
+#SBATCH --time=24:00:00
+#SBATCH --mem=502G
+
+module load r/4.0.4
+
+Rscript deseq_hc.R
+
