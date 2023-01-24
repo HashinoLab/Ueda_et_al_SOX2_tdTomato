@@ -175,26 +175,28 @@ for (i in 5){
 
 
 #### Dot Plots ####
+dotlist <- c("TOP2A","UBE2C","MKI67",
+             "PCNA","NASP","TYMS",
+             "PAX2","JAG1","TBX1",
+             "EMX2","OTX2","OC90",
+             "FBXO2","BRICD5","SPARCL1",
+             "PCP4","MYO6","POU4F3",
+             "DACH1","WNT2B",
+	     "PTGDS","SPP1","CITED1",
+             "NEUROD1","ELAVL4","POU4F1",
+             "S100B","PLP1","PMP22",
+             "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
+             "KRT18","KRT8","TAGLN",
+             "COL1A2","COL1A1","POSTN","FN1","S100A6",
+             "TPM1","TRPM3","ACTA2",
+             "CDH1","CDH2","EPCAM")
+
 # d20
 tiff(
   paste0(File_path, Proj, "/d20/Output/d20_dot.tiff"),
   width = 3, height = 9, units = "in", res = 600)
 DotPlot(d20,
-        features = rev(c("TOP2A","UBE2C","MKI67",
-                         "PCNA","NASP","TYMS",
-                         "PAX2","JAG1","TBX1",
-                         "EMX2","OTX2","OC90",
-                         "FBXO2","BRICD5","SPARCL1",
-                         "PCP4","MYO6","POU4F3",
-                         "DACH1","WNT2B",
-			 "PTGDS","SPP1","CITED1",
-                         "NEUROD1","ELAVL4","POU4F1",
-                         "S100B","PLP1","PMP22",
-                         "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
-                         "KRT18","KRT8","TAGLN",
-                         "COL1A2","COL1A1","POSTN","FN1","S100A6",
-                         "TPM1","TRPM3","ACTA2",
-                         "CDH1","CDH2","EPCAM")),
+        features = rev(dotlist),
   col.min = -2, col.max = 2, dot.min = 0, dot.scale = 8) +
   coord_flip() +
   scale_y_discrete(position = "right",
@@ -210,21 +212,7 @@ tiff(
   paste0(File_path, Proj, "/d30/Output/d30_dot.tiff"),
   width = 3, height = 9, units = "in", res = 600)
 DotPlot(d30,
-        features = rev(c("TOP2A","UBE2C","MKI67",
-                         "PCNA","NASP","TYMS",
-                         "PAX2","JAG1","TBX1",
-                         "EMX2","OTX2","OC90",
-                         "FBXO2","BRICD5","SPARCL1",
-                         "PCP4","MYO6","POU4F3",
-                         "DACH1","WNT2B",
-			 "PTGDS","SPP1","CITED1",
-                         "NEUROD1","ELAVL4","POU4F1",
-                         "S100B","PLP1","PMP22",
-                         "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
-                         "KRT18","KRT8","TAGLN",
-                         "COL1A2","COL1A1","POSTN","FN1","S100A6",
-                         "TPM1","TRPM3","ACTA2",
-                         "CDH1","CDH2","EPCAM")),
+        features = rev(dotlist),
         col.min = -2, col.max = 2, dot.min = 0, dot.scale = 8) +
   coord_flip() +
   scale_y_discrete(position = "right",
@@ -240,21 +228,7 @@ tiff(
   paste0(File_path, Proj, "/d40/Output/d40_dot.tiff"),
   width = 3, height = 9, units = "in", res = 600)
 DotPlot(d40,
-        features = rev(c("TOP2A","UBE2C","MKI67",
-                         "PCNA","NASP","TYMS",
-                         "PAX2","JAG1","TBX1",
-                         "EMX2","OTX2","OC90",
-                         "FBXO2","BRICD5","SPARCL1",
-                         "PCP4","MYO6","POU4F3",
-                         "DACH1","WNT2B",
-			 "PTGDS","SPP1","CITED1",
-                         "NEUROD1","ELAVL4","POU4F1",
-                         "S100B","PLP1","PMP22",
-                         "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
-                         "KRT18","KRT8","TAGLN",
-                         "COL1A2","COL1A1","POSTN","FN1","S100A6",
-                         "TPM1","TRPM3","ACTA2",
-                         "CDH1","CDH2","EPCAM")),
+        features = rev(dotlist),
         col.min = -2, col.max = 2, dot.min = 0, dot.scale = 8) +
   coord_flip() +
   scale_y_discrete(position = "right",
@@ -270,21 +244,7 @@ tiff(
   paste0(File_path, Proj, "/d50/Output/d50_dot.tiff"),
   width = 3.2, height = 9, units = "in", res = 600)
 DotPlot(d50,
-        features = rev(c("TOP2A","UBE2C","MKI67",
-                         "PCNA","NASP","TYMS",
-                         "PAX2","JAG1","TBX1",
-                         "EMX2","OTX2","OC90",
-                         "FBXO2","BRICD5","SPARCL1",
-                         "PCP4","MYO6","POU4F3",
-                         "DACH1","WNT2B",
-			 "PTGDS","SPP1","CITED1",
-                         "NEUROD1","ELAVL4","POU4F1",
-                         "S100B","PLP1","PMP22",
-                         "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
-                         "KRT18","KRT8","TAGLN",
-                         "COL1A2","COL1A1","POSTN","FN1","S100A6",
-                         "TPM1","TRPM3","ACTA2",
-                         "CDH1","CDH2","EPCAM")),
+        features = rev(dotlist),
         col.min = -2, col.max = 2, dot.min = 0, dot.scale = 8) +
   coord_flip() +
   scale_y_discrete(position = "right",
@@ -300,21 +260,7 @@ tiff(
   paste0(File_path, Proj, "/d60/Output/d60_dot.tiff"),
   width = 3.2, height = 9, units = "in", res = 600)
 DotPlot(d60,
-        features = rev(c("TOP2A","UBE2C","MKI67",
-                         "PCNA","NASP","TYMS",
-                         "PAX2","JAG1","TBX1",
-                         "EMX2","OTX2","OC90",
-                         "FBXO2","BRICD5","SPARCL1",
-                         "PCP4","MYO6","POU4F3",
-                         "DACH1","WNT2B",
-			 "PTGDS","SPP1","CITED1",
-                         "NEUROD1","ELAVL4","POU4F1",
-                         "S100B","PLP1","PMP22",
-                         "DSTN","TFAP2B","TFAP2A","DCN","KRT19",
-                         "KRT18","KRT8","TAGLN",
-                         "COL1A2","COL1A1","POSTN","FN1","S100A6",
-                         "TPM1","TRPM3","ACTA2",
-                         "CDH1","CDH2","EPCAM")),
+        features = rev(dotlist),
         col.min = -2, col.max = 2, dot.min = 0, dot.scale = 8) +
   coord_flip() +
   scale_y_discrete(position = "right",
